@@ -1,0 +1,132 @@
+#include <stdio.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+
+void do_ls(char []);
+void do_stat(char *);
+void mode_to_letters(int , char []);
+char* uid_to_username(uid_t);
+char* gid_to_groupname(gid_t);
+
+main(int argc, char *argv[])
+{
+	if(argc == 1 )
+	{
+		do_ls(".");
+	}
+	else
+	{
+		while(--argc)
+		{
+			printf("%s:\n", *++argv);
+			do_ls(*argv);
+		}
+	}
+
+}
+
+void do_ls(char dirname[])
+{
+	DIR *dir_ptr;
+	struct dirent *dir;
+	if( (dir_ptr = opendir(dirname)) == NULL )
+	{
+		fprintf(stderr, "ls1: cannot open %s\n", dirname);
+	}
+	else
+	{
+		while( (dir = readdir(dir_ptr)) != NULL )
+		{
+			do_stat(dir->d_name);
+		}
+		closedir(dir_ptr);
+	}
+}
+
+void do_stat(char *filename)
+{
+	struct stat stat_info;
+	char modestr[11];
+	char *username;
+	char *groupname;
+	
+	if( stat(filename, &stat_info) != 0 )
+	{
+		perror(filename);
+	}
+	else
+	{		
+		mode_to_letters(stat_info.st_mode ,modestr);
+
+		username = uid_to_username(stat_info.st_uid);
+
+		groupname = gid_to_groupname(stat_info.st_gid);
+
+		char *time = ctime(&stat_info.st_mtime);
+
+		printf("%s  %d %s %s %6ld %.12s  %-s\n",
+			modestr, stat_info.st_nlink, username, groupname, (long)stat_info.st_size, time+4, filename);
+	}
+
+}
+
+void mode_to_letters(int mode, char st_mode[])
+{
+	strcpy(st_mode, "----------") ;
+
+	if( S_ISDIR(mode))
+		st_mode[0] = 'd';
+	if( S_ISCHR(mode))
+		st_mode[0] = 'c';
+	if( S_ISBLK(mode) )
+		st_mode[0] = 'b';
+
+	if( mode & S_IRUSR )
+		st_mode[1] = 'r';
+	if( mode & S_IWUSR )
+		st_mode[2] = 'w';
+	if( mode & S_IXUSR )
+		st_mode[3] = 'x';
+
+	if( mode & S_IRGRP )
+		st_mode[4] = 'r';
+	if( mode & S_IWGRP )
+		st_mode[5] = 'w';
+	if( mode & S_IXGRP )
+		st_mode[6] = 'x';
+
+	if( mode & S_IROTH )
+		st_mode[7] = 'r';
+	if( mode & S_IWOTH )
+		st_mode[8] = 'w';
+	if( mode & S_IXOTH )
+		st_mode[9] = 'x';
+
+}
+
+char * uid_to_username(uid_t uid)
+{
+	struct passwd *passinfo;
+
+	if( (passinfo = getpwuid(uid)) == NULL)
+	{
+		return "errorName";
+	}
+	return passinfo->pw_name;
+}
+char * gid_to_groupname(gid_t gid)
+{
+	struct group *groupinfo;
+
+	if( (groupinfo = getgrgid(gid)) == NULL )
+	{
+		return "errorName";
+	}
+	return groupinfo->gr_name;
+}
