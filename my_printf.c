@@ -1,10 +1,3 @@
-/*************************************************************************
-	> File Name: my_printf.c
-	> Author: gongpixi
-	> Mail: 1371854096@qq.com
-	> Created Time: 2018年09月20日 星期四 20时29分03秒
- ************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -26,13 +19,13 @@ int my_printf(const char *frm, ...) {
                             temp *= -1;
                             h = 1;
                         }
-                        while (temp) {
+                        do{
                             if(temp % 10 == 0)  {
                                 s++;
                             }
                             x = x * 10 + temp % 10;
                             temp /= 10;
-                        }
+                        } while(temp);
                         if(h == 1) {
                             putchar('-');
                         }
@@ -63,7 +56,8 @@ int main() {
     int n = 123;
     my_printf("hello world\n");
     my_printf("n = %d\n", n);
-    my_printf("n = %d\n", 12000);
+    my_printf("n = %d\n", 12000);   
+    my_printf("n = %d\n", 0);
     my_printf("n = %d\n", -567);
     my_printf("n = %d\n", INT32_MIN);
     my_printf("n = %d\n", INT32_MAX);
